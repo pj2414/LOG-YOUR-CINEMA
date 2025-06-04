@@ -9,6 +9,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Star, Calendar, Clock, ArrowLeft, BookmarkPlus, Play } from 'lucide-react';
 import { VideoPlayer } from '@/components/VideoPlayer';
+import { ChevronDown } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
+interface Episode {
+  number: number;
+  title?: string;
+  synopsis?: string;
+}
 
 export default function AnimeDetail() {
   const { animeId } = useParams();
@@ -22,6 +35,8 @@ export default function AnimeDetail() {
   const [review, setReview] = useState('');
   const [isWatchOpen, setIsWatchOpen] = useState(false);
   const [episode, setEpisode] = useState(1);
+  const [currentServer, setCurrentServer] = useState<'server1' | 'server2'>('server1');
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
 
   useEffect(() => {
     fetchAnimeData();
@@ -94,8 +109,13 @@ export default function AnimeDetail() {
     }
   };
 
-  const getWatchUrl = () => {
-    return `https://vidlink.pro/anime/${anime.idMal}/${episode}/sub?icons=vid&fallback=true`;
+  // Update the getWatchUrl function
+  const getWatchUrl = (episodeNumber: number, server: 'server1' | 'server2') => {
+    if (server === 'server1') {
+      // Using the Anilist ID directly since it's already in the correct format
+      return `https://vidsrc.cc/v2/embed/anime/ani${anime.id}/${episodeNumber}/sub`;
+    }
+    return `https://embed.su/embed/anilist/${anime.id}/${episodeNumber}?color=ffffff`;
   };
 
   if (isLoading) {
@@ -214,27 +234,13 @@ export default function AnimeDetail() {
 
             {/* Quick Actions */}
             <div className="flex flex-wrap gap-4">
-              <Button onClick={addToWatchlist} className="bg-neon-purple/20 hover:bg-neon-purple/30 border border-neon-purple/30">
+              <Button 
+                onClick={addToWatchlist} 
+                className="bg-neon-purple/20 hover:bg-neon-purple/30 border border-neon-purple/30"
+              >
                 <BookmarkPlus className="w-4 h-4 mr-2" />
                 Add to Watchlist
               </Button>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min={1}
-                  max={anime.episodes || 1}
-                  value={episode}
-                  onChange={(e) => setEpisode(parseInt(e.target.value))}
-                  className="w-16 bg-white/10 border border-white/20 rounded px-2 py-1 text-white"
-                />
-                <Button 
-                  onClick={() => setIsWatchOpen(true)} 
-                  className="bg-neon-purple/20 hover:bg-neon-purple/30 border border-neon-purple/30"
-                >
-                  <Play className="w-4 h-4 mr-2" />
-                  Watch Episode
-                </Button>
-              </div>
             </div>
 
             {/* Log Anime */}
@@ -305,11 +311,71 @@ export default function AnimeDetail() {
           </Card>
         )}
 
+        {/* Episodes List */}
+        <Card className="glass-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Play className="w-5 h-5" />
+              Episodes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single" collapsible className="space-y-2">
+              {Array.from({ length: anime.episodes || 0 }, (_, i) => i + 1).map((episodeNum) => (
+                <AccordionItem
+                  key={episodeNum}
+                  value={`episode-${episodeNum}`}
+                  className="bg-white/5 rounded-lg border border-white/10"
+                >
+                  <AccordionTrigger className="px-4 py-2 hover:bg-white/5 rounded-lg [&[data-state=open]>svg]:rotate-180">
+                    <div className="flex items-center gap-4">
+                      <Badge variant="outline" className="w-12">
+                        EP {episodeNum}
+                      </Badge>
+                      <span className="text-left">Episode {episodeNum}</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-3 pt-1">
+                    <div className="space-y-4">
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setEpisode(episodeNum);
+                            setCurrentServer('server1');
+                            setIsWatchOpen(true);
+                          }}
+                          className="bg-neon-purple/20 hover:bg-neon-purple/30 border border-neon-purple/30"
+                        >
+                          <Play className="w-4 h-4 mr-2" />
+                          Watch on Server 1
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setEpisode(episodeNum);
+                            setCurrentServer('server2');
+                            setIsWatchOpen(true);
+                          }}
+                          className="bg-neon-pink/20 hover:bg-neon-pink/30 border border-neon-pink/30"
+                        >
+                          <Play className="w-4 h-4 mr-2" />
+                          Watch on Server 2
+                        </Button>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </CardContent>
+        </Card>
+
         {/* Watch Video */}
         <VideoPlayer
           open={isWatchOpen}
           onClose={() => setIsWatchOpen(false)}
-          videoUrl={getWatchUrl()}
+          videoUrl={getWatchUrl(episode, currentServer)}
         />
       </div>
     </div>
