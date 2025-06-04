@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
@@ -9,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Star, Calendar, Clock, ArrowLeft, BookmarkPlus, Play } from 'lucide-react';
+import { VideoPlayer } from '@/components/VideoPlayer';
 
 export default function AnimeDetail() {
   const { animeId } = useParams();
@@ -20,6 +20,8 @@ export default function AnimeDetail() {
   const [status, setStatus] = useState('');
   const [rating, setRating] = useState<number | null>(null);
   const [review, setReview] = useState('');
+  const [isWatchOpen, setIsWatchOpen] = useState(false);
+  const [episode, setEpisode] = useState(1);
 
   useEffect(() => {
     fetchAnimeData();
@@ -90,6 +92,10 @@ export default function AnimeDetail() {
         variant: "destructive",
       });
     }
+  };
+
+  const getWatchUrl = () => {
+    return `https://vidlink.pro/anime/${anime.idMal}/${episode}/sub?icons=vid&fallback=true`;
   };
 
   if (isLoading) {
@@ -212,6 +218,23 @@ export default function AnimeDetail() {
                 <BookmarkPlus className="w-4 h-4 mr-2" />
                 Add to Watchlist
               </Button>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  max={anime.episodes || 1}
+                  value={episode}
+                  onChange={(e) => setEpisode(parseInt(e.target.value))}
+                  className="w-16 bg-white/10 border border-white/20 rounded px-2 py-1 text-white"
+                />
+                <Button 
+                  onClick={() => setIsWatchOpen(true)} 
+                  className="bg-neon-purple/20 hover:bg-neon-purple/30 border border-neon-purple/30"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Watch Episode
+                </Button>
+              </div>
             </div>
 
             {/* Log Anime */}
@@ -281,6 +304,13 @@ export default function AnimeDetail() {
             </CardContent>
           </Card>
         )}
+
+        {/* Watch Video */}
+        <VideoPlayer
+          open={isWatchOpen}
+          onClose={() => setIsWatchOpen(false)}
+          videoUrl={getWatchUrl()}
+        />
       </div>
     </div>
   );

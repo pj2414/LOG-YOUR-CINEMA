@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'https://anime-backend-evn4.onrender.com';
+export const API_BASE_URL = 'http://localhost:5000/api'; // Update with your actual API base URL
 
 class ApiClient {
   private baseURL: string;

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
@@ -9,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Star, Calendar, Clock, ArrowLeft, Play, Heart, BookmarkPlus } from 'lucide-react';
+import { VideoPlayer } from '@/components/VideoPlayer';
 
 export default function MovieDetail() {
   const { movieId } = useParams();
@@ -20,6 +20,8 @@ export default function MovieDetail() {
   const [status, setStatus] = useState('');
   const [rating, setRating] = useState<number | null>(null);
   const [review, setReview] = useState('');
+  const [isWatchOpen, setIsWatchOpen] = useState(false);
+  const [currentServer, setCurrentServer] = useState<'server1' | 'server2'>('server1');
 
   useEffect(() => {
     fetchMovieData();
@@ -90,6 +92,13 @@ export default function MovieDetail() {
         variant: "destructive",
       });
     }
+  };
+
+  const getWatchUrl = () => {
+    if (currentServer === 'server1') {
+      return `https://vidlink.pro/movie/${movieId}?icons=vid`;
+    }
+    return `https://multiembed.mov/?video_id=${movieId}&tmdb=1`;
   };
 
   if (isLoading) {
@@ -196,9 +205,32 @@ export default function MovieDetail() {
 
             {/* Quick Actions */}
             <div className="flex flex-wrap gap-4">
-              <Button onClick={addToWatchlist} className="bg-neon-blue/20 hover:bg-neon-blue/30 border border-neon-blue/30">
+              <Button 
+                onClick={addToWatchlist} 
+                className="bg-neon-blue/20 hover:bg-neon-blue/30 border border-neon-blue/30"
+              >
                 <BookmarkPlus className="w-4 h-4 mr-2" />
                 Add to Watchlist
+              </Button>
+              <Button 
+                onClick={() => {
+                  setCurrentServer('server1');
+                  setIsWatchOpen(true);
+                }} 
+                className="bg-neon-purple/20 hover:bg-neon-purple/30 border border-neon-purple/30"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Watch Server 1
+              </Button>
+              <Button 
+                onClick={() => {
+                  setCurrentServer('server2');
+                  setIsWatchOpen(true);
+                }} 
+                className="bg-neon-pink/20 hover:bg-neon-pink/30 border border-neon-pink/30"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Watch Server 2
               </Button>
             </div>
 
@@ -279,6 +311,13 @@ export default function MovieDetail() {
           </Card>
         )}
       </div>
+
+      {/* Watch Video Modal */}
+      <VideoPlayer
+        open={isWatchOpen}
+        onClose={() => setIsWatchOpen(false)}
+        videoUrl={getWatchUrl()}
+      />
     </div>
   );
 }
