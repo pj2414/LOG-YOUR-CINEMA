@@ -14,6 +14,8 @@ import Register from "@/pages/Register";
 import Search from "@/pages/Search";
 import Movies from "@/pages/Movies";
 import MovieDetail from "@/pages/MovieDetail";
+import TV from "@/pages/TV";
+import TVDetail from "@/pages/TVDetail";
 import Anime from "@/pages/Anime";
 import AnimeDetail from "@/pages/AnimeDetail";
 import Diary from "@/pages/Diary";
@@ -21,8 +23,7 @@ import Friends from "@/pages/Friends";
 import Social from "@/pages/Social";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
-import Admin from "@/pages/Admin"; // Import the Admin component
-import PrivateRoute from "@/components/PrivateRoute"; // Import the PrivateRoute component
+import Admin from "@/pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -108,6 +109,34 @@ function AppContent() {
                   <Navbar />
                   <div className="flex-1">
                     <MovieDetail />
+                  </div>
+                  <Footer />
+                </>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tv"
+            element={
+              <ProtectedRoute>
+                <>
+                  <Navbar />
+                  <div className="flex-1">
+                    <TV />
+                  </div>
+                  <Footer />
+                </>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tv/:tvId"
+            element={
+              <ProtectedRoute>
+                <>
+                  <Navbar />
+                  <div className="flex-1">
+                    <TVDetail />
                   </div>
                   <Footer />
                 </>
@@ -201,7 +230,7 @@ function AppContent() {
           <Route
             path="/admin"
             element={
-              <PrivateRoute requireAdmin>
+              <ProtectedRoute>
                 <>
                   <Navbar />
                   <div className="flex-1">
@@ -209,7 +238,7 @@ function AppContent() {
                   </div>
                   <Footer />
                 </>
-              </PrivateRoute>
+              </ProtectedRoute>
             }
           />
           <Route path="*" element={<><NotFound /><Footer /></>} />

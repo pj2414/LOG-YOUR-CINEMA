@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://localhost:5000/api'; // Update with your actual API base URL
+const API_BASE_URL = 'http://localhost:5000/api';
 
 class ApiClient {
   private baseURL: string;
@@ -92,6 +92,59 @@ class ApiClient {
     return this.request<any>('/trending/movies');
   }
 
+  async getPopularMovies(page = 1) {
+    return this.request<any>(`/popular/movies?page=${page}`);
+  }
+
+  async getTopRatedMovies(page = 1) {
+    return this.request<any>(`/top/movies?page=${page}`);
+  }
+
+  async getMovieRecommendations(movieId: string, page = 1) {
+    return this.request<any>(`/movies/${movieId}/recommendations?page=${page}`);
+  }
+
+  async getSimilarMovies(movieId: string, page = 1) {
+    return this.request<any>(`/movies/${movieId}/similar?page=${page}`);
+  }
+
+  // TV Series endpoints
+  async searchTV(query: string, page = 1) {
+    return this.request<any>(`/tv/search/${encodeURIComponent(query)}?page=${page}`);
+  }
+
+  async getTV(tvId: string) {
+    return this.request<any>(`/tv/${tvId}`);
+  }
+
+  async getTVSeason(tvId: string, seasonNumber: number) {
+    return this.request<any>(`/tv/${tvId}/season/${seasonNumber}`);
+  }
+
+  async getTVEpisode(tvId: string, seasonNumber: number, episodeNumber: number) {
+    return this.request<any>(`/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}`);
+  }
+
+  async getTrendingTV() {
+    return this.request<any>('/trending/tv');
+  }
+
+  async getPopularTV(page = 1) {
+    return this.request<any>(`/popular/tv?page=${page}`);
+  }
+
+  async getTopRatedTV(page = 1) {
+    return this.request<any>(`/top/tv?page=${page}`);
+  }
+
+  async getTVRecommendations(tvId: string, page = 1) {
+    return this.request<any>(`/tv/${tvId}/recommendations?page=${page}`);
+  }
+
+  async getSimilarTV(tvId: string, page = 1) {
+    return this.request<any>(`/tv/${tvId}/similar?page=${page}`);
+  }
+
   // Anime endpoints
   async searchAnime(query: string, page = 1) {
     return this.request<any>(`/anime/search/${encodeURIComponent(query)}?page=${page}`);
@@ -103,6 +156,14 @@ class ApiClient {
 
   async getTrendingAnime() {
     return this.request<any>('/trending/anime');
+  }
+
+  async getPopularAnime(page = 1) {
+    return this.request<any>(`/popular/anime?page=${page}`);
+  }
+
+  async getTopRatedAnime(page = 1) {
+    return this.request<any>(`/top/anime?page=${page}`);
   }
 
   // Log endpoints
@@ -122,6 +183,13 @@ class ApiClient {
     return this.request<any>(`/logs/${contentType}/${contentId}`);
   }
 
+  async updateLog(logId: string, logData: any) {
+    return this.request<any>(`/logs/${logId}`, {
+      method: 'PUT',
+      body: JSON.stringify(logData),
+    });
+  }
+
   async deleteLog(logId: string) {
     return this.request<any>(`/logs/${logId}`, {
       method: 'DELETE',
@@ -129,21 +197,28 @@ class ApiClient {
   }
 
   // Watchlist endpoints
-  async addToWatchlist(item: any) {
+  async addToWatchlist(data: { contentType: string; contentId: string; priority?: string }) {
     return this.request<any>('/watchlist', {
       method: 'POST',
-      body: JSON.stringify(item),
+      body: JSON.stringify(data),
     });
   }
 
-  async getWatchlist(params: any = {}) {
+  async getWatchlist(params: { contentType?: string; priority?: string } = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request<any>(`/watchlist?${queryString}`);
+    return this.request<any>(`/watchlist${queryString ? `?${queryString}` : ''}`);
   }
 
   async removeFromWatchlist(watchlistId: string) {
     return this.request<any>(`/watchlist/${watchlistId}`, {
       method: 'DELETE',
+    });
+  }
+
+  async updateWatchlistPriority(watchlistId: string, priority: string) {
+    return this.request<any>(`/watchlist/${watchlistId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ priority }),
     });
   }
 
@@ -197,8 +272,8 @@ class ApiClient {
   }
 
   // Admin endpoints
-  async getAllUsers() {
-    return this.request<any>('/admin/users');
+  async getAllUsers(page = 1) {
+    return this.request<any>(`/admin/users?page=${page}`);
   }
 
   async deleteUser(userId: string) {

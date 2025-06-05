@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Film, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Film, Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
 
 export default function Login() {
   const { login, isAuthenticated } = useAuth();
@@ -30,9 +31,10 @@ export default function Login() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
   };
 
@@ -45,8 +47,8 @@ export default function Login() {
             <Film className="w-8 h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-4xl font-bold cinema-text">Welcome to LYC</h1>
-            <p className="text-gray-400 mt-2">Log Your Cinema journey begins here</p>
+            <h1 className="text-4xl font-bold cinema-text">Welcome Back</h1>
+            <p className="text-gray-400 mt-2">Sign in to your LYC account</p>
           </div>
         </div>
 
@@ -63,21 +65,25 @@ export default function Login() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-gray-300">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="bg-white/5 border-white/20 text-white placeholder-gray-400 focus:border-neon-blue/50"
-                />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="pl-10 bg-white/5 border-white/20 text-white placeholder-gray-400 focus:border-neon-blue/50"
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-gray-300">Password</Label>
                 <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
                     id="password"
                     name="password"
@@ -86,7 +92,7 @@ export default function Login() {
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="bg-white/5 border-white/20 text-white placeholder-gray-400 focus:border-neon-blue/50 pr-10"
+                    className="pl-10 pr-10 bg-white/5 border-white/20 text-white placeholder-gray-400 focus:border-neon-blue/50"
                   />
                   <Button
                     type="button"
@@ -129,6 +135,21 @@ export default function Login() {
               </div>
             </CardFooter>
           </form>
+        </Card>
+
+        {/* Features Preview */}
+        <Card className="glass-card border border-neon-blue/30">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-3">
+              <h3 className="text-sm font-medium text-neon-blue">Track Your Journey</h3>
+              <div className="text-xs text-gray-400 space-y-1">
+                <p>📽️ Movies, TV Series & Anime</p>
+                <p>⭐ Rate and review content</p>
+                <p>👥 Connect with fellow enthusiasts</p>
+                <p>📚 Create custom collections</p>
+              </div>
+            </div>
+          </CardContent>
         </Card>
       </div>
     </div>

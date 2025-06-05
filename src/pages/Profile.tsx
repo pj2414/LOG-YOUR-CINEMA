@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
@@ -10,7 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Edit, Save, Eye, Clock, Star, Film, BookOpen } from 'lucide-react';
+import { Edit, Save, Eye, Clock, Star, Film, BookOpen, BookmarkCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
@@ -22,6 +22,7 @@ export default function Profile() {
     avatar: user?.avatar || ''
   });
   const [logs, setLogs] = useState([]);
+  const [watchlist, setWatchlist] = useState([]);
   const [stats, setStats] = useState({
     watched: 0,
     watching: 0,
@@ -31,41 +32,51 @@ export default function Profile() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchUserData();
+    const fetchProfileData = async () => {
+      try {
+        setIsLoading(true);
+        const [logsResponse] = await Promise.all([
+          api.getLogs(),
+          // ... existing code ...
+        ]);
+
+        const logs = logsResponse.logs || [];
+        setLogs(logs);
+
+        // Calculate stats from logs
+        const watchedCount = logs.filter((log: any) => log.status === 'watched').length;
+        const watchingCount = logs.filter((log: any) => log.status === 'watching').length;
+        const plannedCount = logs.filter((log: any) => log.status === 'planned').length;
+        
+        const ratedLogs = logs.filter((log: any) => log.rating);
+        const averageRating = ratedLogs.length > 0 
+          ? ratedLogs.reduce((sum: number, log: any) => sum + log.rating, 0) / ratedLogs.length
+          : 0;
+
+        setStats({
+          watched: watchedCount,
+          watching: watchingCount,
+          planned: plannedCount,
+          averageRating: parseFloat(averageRating.toFixed(1))
+        });
+
+        // Fetch watchlist
+        const watchlistResponse = await api.getWatchlist();
+        setWatchlist(watchlistResponse.watchlist || []);
+
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: "Failed to load profile data",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfileData();
   }, []);
-
-  const fetchUserData = async () => {
-    try {
-      const logsResponse = await api.getLogs();
-      const userLogs = logsResponse.logs || [];
-      setLogs(userLogs);
-
-      // Calculate stats
-      const watchedCount = userLogs.filter((log: any) => log.status === 'watched').length;
-      const watchingCount = userLogs.filter((log: any) => log.status === 'watching').length;
-      const plannedCount = userLogs.filter((log: any) => log.status === 'planned').length;
-      
-      const ratedLogs = userLogs.filter((log: any) => log.rating);
-      const averageRating = ratedLogs.length > 0 
-        ? ratedLogs.reduce((sum: number, log: any) => sum + log.rating, 0) / ratedLogs.length
-        : 0;
-
-      setStats({
-        watched: watchedCount,
-        watching: watchingCount,
-        planned: plannedCount,
-        averageRating: parseFloat(averageRating.toFixed(1))
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load profile data",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleSave = async () => {
     try {
@@ -282,6 +293,81 @@ export default function Profile() {
                     Delete
                   </Button>
                 </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Watchlist Section */}
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <BookmarkCheck className="w-5 h-5 text-neon-blue" />
+            <span>Watchlist</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {watchlist.length === 0 ? (
+            <div className="text-center py-8">
+              <BookmarkCheck className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-400">Your watchlist is empty</p>
+              <p className="text-sm text-gray-500">Add some movies, TV shows, or anime to watch later!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {watchlist.map((item: any) => (
+                <Link
+                  key={item._id}
+                  to={`/${item.contentType}/${item.contentId}`}
+                  className="group"
+                >
+                  <Card className="glass-card hover-glow">
+                    <CardContent className="p-0">
+                      {item.contentDetails?.poster ? (
+                        <img
+                          src={item.contentDetails.poster}
+                          alt={item.contentDetails.title}
+                          className="w-full h-48 object-cover rounded-t-lg"
+                        />
+                      ) : (
+                        <div className="w-full h-48 bg-gray-800 rounded-t-lg flex items-center justify-center">
+                          <BookmarkCheck className="w-8 h-8 text-gray-600" />
+                        </div>
+                      )}
+                      <div className="p-4 space-y-2">
+                        <h3 className="font-medium text-white group-hover:text-neon-blue transition-colors line-clamp-2">
+                          {item.contentDetails?.title || `${item.contentType} #${item.contentId}`}
+                        </h3>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-400">
+                            {item.contentDetails?.year || 'N/A'}
+                          </span>
+                          <Badge variant="secondary" className={`
+                            ${item.priority === 'high' ? 'bg-red-500/20 text-red-400' :
+                              item.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                              'bg-green-500/20 text-green-400'}
+                          `}>
+                            {item.priority}
+                          </Badge>
+                        </div>
+                        {item.contentDetails?.genres && (
+                          <div className="flex flex-wrap gap-1">
+                            {item.contentDetails.genres.slice(0, 2).map((genre: any) => (
+                              <Badge 
+                                key={genre.id || genre} 
+                                variant="outline" 
+                                className="text-xs"
+                              >
+                                {genre.name || genre}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}

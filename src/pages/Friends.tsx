@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '@/lib/api';
@@ -15,7 +16,6 @@ export default function Friends() {
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('followers');
 
   useEffect(() => {
     fetchFriendsData();
@@ -24,15 +24,20 @@ export default function Friends() {
   const fetchFriendsData = async () => {
     if (!user?.id) return;
     
-    setIsLoading(true);
     try {
+      console.log('Fetching friends data for user:', user.id);
+      
       const [followersResponse, followingResponse] = await Promise.all([
         api.getUserFollowers(user.id),
         api.getUserFollowing(user.id)
       ]);
+
+      console.log('Followers response:', followersResponse);
+      console.log('Following response:', followingResponse);
       
       setFollowers(followersResponse.followers || []);
       setFollowing(followingResponse.following || []);
+      
     } catch (error) {
       console.error('Failed to fetch friends data:', error);
       toast({
@@ -66,98 +71,131 @@ export default function Friends() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto" />
-          <p>Loading friends data...</p>
+          <div className="w-12 h-12 border-4 border-neon-blue border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-gray-400">Loading friends...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
-      <h1 className="text-3xl font-bold mb-6">Friends</h1>
+    <div className="container mx-auto px-4 py-8 mt-16 space-y-8">
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold cinema-text">Friends</h1>
+        <p className="text-gray-300 text-lg">Your cinema community</p>
+      </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full">
-          <TabsTrigger value="followers" className="w-1/2">
-            <Users className="mr-2" />
-            Followers ({followers.length})
+      <Tabs defaultValue="following" className="space-y-6">
+        <TabsList className="bg-white/10 border border-white/20">
+          <TabsTrigger value="following" className="flex items-center space-x-2">
+            <Users className="w-4 h-4" />
+            <span>Following ({following.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="following" className="w-1/2">
-            <Activity className="mr-2" />
-            Following ({following.length})
+          <TabsTrigger value="followers" className="flex items-center space-x-2">
+            <Activity className="w-4 h-4" />
+            <span>Followers ({followers.length})</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="followers">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-            {followers.map((follower: any) => (
-              <Card key={follower._id}>
-                <CardHeader className="flex flex-row items-center gap-4">
-                  <Avatar>
-                    <AvatarImage src={follower.avatar} />
-                    <AvatarFallback>{follower.username[0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle>
-                      <Link to={`/profile/${follower._id}`} className="hover:underline">
-                        {follower.username}
-                      </Link>
-                    </CardTitle>
-                    {follower.bio && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
-                        {follower.bio}
-                      </p>
-                    )}
-                  </div>
-                </CardHeader>
-              </Card>
-            ))}
-            {followers.length === 0 && (
-              <p className="text-gray-500 dark:text-gray-400 col-span-full text-center py-8">
-                No followers yet
-              </p>
-            )}
-          </div>
+        <TabsContent value="following" className="space-y-6">
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle>People You Follow</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {following.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400">You're not following anyone yet</p>
+                  <p className="text-sm text-gray-500">
+                    <Link to="/social" className="text-neon-blue hover:text-neon-purple">
+                      Discover people to follow
+                    </Link>
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {following.map((friend: any) => (
+                    <div key={friend._id || friend.id} className="flex items-center justify-between p-4 rounded-lg bg-white/5">
+                      <div className="flex items-center space-x-4">
+                        <Avatar>
+                          <AvatarImage src={friend.avatar} />
+                          <AvatarFallback className="bg-neon-gradient text-white">
+                            {friend.username?.charAt(0).toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <Link 
+                            to={`/user/${friend._id || friend.id}`}
+                            className="font-medium text-white hover:text-neon-blue"
+                          >
+                            {friend.username}
+                          </Link>
+                          {friend.bio && (
+                            <p className="text-sm text-gray-400">{friend.bio}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => unfollowUser(friend._id || friend.id)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      >
+                        <UserMinus className="w-4 h-4 mr-2" />
+                        Unfollow
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
-        <TabsContent value="following">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-            {following.map((follow: any) => (
-              <Card key={follow._id}>
-                <CardHeader className="flex flex-row items-center gap-4">
-                  <Avatar>
-                    <AvatarImage src={follow.avatar} />
-                    <AvatarFallback>{follow.username[0]}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <CardTitle>
-                      <Link to={`/profile/${follow._id}`} className="hover:underline">
-                        {follow.username}
-                      </Link>
-                    </CardTitle>
-                    {follow.bio && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
-                        {follow.bio}
-                      </p>
-                    )}
-                  </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => unfollowUser(follow._id)}
-                  >
-                    <UserMinus className="h-4 w-4" />
-                  </Button>
-                </CardHeader>
-              </Card>
-            ))}
-            {following.length === 0 && (
-              <p className="text-gray-500 dark:text-gray-400 col-span-full text-center py-8">
-                Not following anyone yet
-              </p>
-            )}
-          </div>
+        <TabsContent value="followers" className="space-y-6">
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle>Your Followers</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {followers.length === 0 ? (
+                <div className="text-center py-8">
+                  <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400">No followers yet</p>
+                  <p className="text-sm text-gray-500">
+                    Start sharing your cinema journey to attract followers!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {followers.map((follower: any) => (
+                    <div key={follower._id || follower.id} className="flex items-center justify-between p-4 rounded-lg bg-white/5">
+                      <div className="flex items-center space-x-4">
+                        <Avatar>
+                          <AvatarImage src={follower.avatar} />
+                          <AvatarFallback className="bg-neon-gradient text-white">
+                            {follower.username?.charAt(0).toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <Link 
+                            to={`/user/${follower._id || follower.id}`}
+                            className="font-medium text-white hover:text-neon-blue"
+                          >
+                            {follower.username}
+                          </Link>
+                          {follower.bio && (
+                            <p className="text-sm text-gray-400">{follower.bio}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

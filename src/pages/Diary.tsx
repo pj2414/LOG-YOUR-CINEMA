@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Star, BookOpen, Plus, Edit, Trash2 } from 'lucide-react';
+import { Calendar, Star, BookOpen, Plus, Trash2, Tv } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 export default function Diary() {
@@ -20,7 +20,9 @@ export default function Diary() {
     contentId: '',
     notes: '',
     watchedDate: new Date().toISOString().split('T')[0],
-    rating: ''
+    rating: '',
+    season: '',
+    episode: ''
   });
 
   useEffect(() => {
@@ -44,10 +46,14 @@ export default function Diary() {
 
   const createDiaryEntry = async () => {
     try {
-      await api.createDiaryEntry({
+      const entryData = {
         ...newEntry,
-        rating: newEntry.rating ? parseInt(newEntry.rating) : undefined
-      });
+        rating: newEntry.rating ? parseInt(newEntry.rating) : undefined,
+        season: newEntry.season ? parseInt(newEntry.season) : undefined,
+        episode: newEntry.episode ? parseInt(newEntry.episode) : undefined
+      };
+
+      await api.createDiaryEntry(entryData);
       toast({
         title: "Success",
         description: "Diary entry created successfully!",
@@ -58,7 +64,9 @@ export default function Diary() {
         contentId: '',
         notes: '',
         watchedDate: new Date().toISOString().split('T')[0],
-        rating: ''
+        rating: '',
+        season: '',
+        episode: ''
       });
       fetchDiaryEntries();
     } catch (error: any) {
@@ -93,6 +101,19 @@ export default function Diary() {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const getContentTypeIcon = (contentType: string) => {
+    switch (contentType) {
+      case 'movie':
+        return '🎬 Movie';
+      case 'tv':
+        return '📺 TV Series';
+      case 'anime':
+        return '🎌 Anime';
+      default:
+        return '📽️ Content';
+    }
   };
 
   if (isLoading) {
@@ -134,6 +155,7 @@ export default function Diary() {
                   className="w-full bg-white/10 border border-white/20 rounded-md px-3 py-2 text-white"
                 >
                   <option value="movie">Movie</option>
+                  <option value="tv">TV Series</option>
                   <option value="anime">Anime</option>
                 </select>
               </div>
@@ -146,6 +168,34 @@ export default function Diary() {
                   className="bg-white/10 border-white/20 text-white"
                 />
               </div>
+              
+              {newEntry.contentType === 'tv' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Season</label>
+                    <Input
+                      type="number"
+                      min="1"
+                      placeholder="Season number"
+                      value={newEntry.season}
+                      onChange={(e) => setNewEntry(prev => ({ ...prev, season: e.target.value }))}
+                      className="bg-white/10 border-white/20 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Episode</label>
+                    <Input
+                      type="number"
+                      min="1"
+                      placeholder="Episode number"
+                      value={newEntry.episode}
+                      onChange={(e) => setNewEntry(prev => ({ ...prev, episode: e.target.value }))}
+                      className="bg-white/10 border-white/20 text-white"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">Watched Date</label>
                 <Input
@@ -205,7 +255,7 @@ export default function Diary() {
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-3">
                       <Badge variant="secondary" className="text-xs">
-                        {entry.contentType === 'movie' ? '🎬 Movie' : '📺 Anime'}
+                        {getContentTypeIcon(entry.contentType)}
                       </Badge>
                       <div className="flex items-center space-x-2 text-sm text-gray-400">
                         <Calendar className="w-4 h-4" />
@@ -218,7 +268,14 @@ export default function Diary() {
                         </div>
                       )}
                     </div>
-                    <p className="text-white font-medium mb-2">Content ID: {entry.contentId}</p>
+                    <p className="text-white font-medium mb-2">
+                      Content ID: {entry.contentId}
+                      {entry.season && entry.episode && (
+                        <span className="text-gray-400 ml-2">
+                          (S{entry.season}E{entry.episode})
+                        </span>
+                      )}
+                    </p>
                     {entry.notes && (
                       <p className="text-gray-300">{entry.notes}</p>
                     )}

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -227,6 +228,21 @@ export default function Register() {
               </div>
             </CardFooter>
           </form>
+        </Card>
+
+        {/* Features Preview */}
+        <Card className="glass-card border border-neon-purple/30">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-3">
+              <h3 className="text-sm font-medium text-neon-purple">What you'll get:</h3>
+              <div className="text-xs text-gray-400 space-y-1">
+                <p>📽️ Track movies, TV series and anime</p>
+                <p>⭐ Rate and review content</p>
+                <p>👥 Follow friends and see their activity</p>
+                <p>📚 Create custom collections</p>
+              </div>
+            </div>
+          </CardContent>
         </Card>
       </div>
     </div>

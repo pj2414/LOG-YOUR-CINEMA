@@ -1,226 +1,299 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Users, 
+  Film, 
+  BookOpen, 
+  Activity,
+  Tv,
+  Trash2,
+  Shield,
+  Database
+} from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function Admin() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [users, setUsers] = useState([]);
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalLogs: 0,
-    totalDiaryEntries: 0,
-    totalCollections: 0,
-    totalActivities: 0,
-    totalAdmins: 0,
-    movieLogs: 0,
-    animeLogs: 0,
-  });
+  const [stats, setStats] = useState<any>(null);
+  const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [userToDelete, setUserToDelete] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetchAdminData();
-  }, []);
+    fetchData();
+  }, [currentPage]);
 
-  const fetchAdminData = async () => {
+  const fetchData = async () => {
     try {
       setIsLoading(true);
-      const [usersResponse, statsResponse] = await Promise.all([
-        api.getAllUsers(),
+      const [statsResponse, usersResponse] = await Promise.all([
         api.getAppStats(),
+        api.getAllUsers(currentPage)
       ]);
 
-      setUsers(usersResponse.users || []);
       setStats(statsResponse);
-    } catch (error) {
-      console.error('Failed to fetch admin data:', error);
+      setUsers(usersResponse.users);
+      setTotalPages(usersResponse.totalPages);
+    } catch (error: any) {
       toast({
-        title: 'Error',
-        description: 'Failed to load admin data',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load admin data",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
+  const deleteUser = async (userId: string) => {
     try {
       await api.deleteUser(userId);
       toast({
-        title: 'Success',
-        description: 'User deleted successfully',
+        title: "Success",
+        description: "User deleted successfully",
       });
-      fetchAdminData();
-    } catch (error) {
+      fetchData();
+    } catch (error: any) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete user',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to delete user",
+        variant: "destructive",
       });
     }
-    setUserToDelete(null);
   };
 
   if (!user?.role || user.role !== 'admin') {
     return (
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold text-center">Access Denied</h1>
-        <p className="text-center mt-4">You don't have permission to view this page.</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
+          <p className="text-gray-400">You don't have permission to access this page.</p>
+        </div>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-neon-blue border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-gray-400">Loading admin data...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <ScrollArea className="h-[calc(100vh-4rem)] w-full">
-      <div className="container mx-auto p-4 space-y-8">
-        <h1 className="text-3xl font-bold sticky top-0 pt-4 pb-2 bg-background/95 backdrop-blur-sm z-10">
-          Admin Dashboard
-        </h1>
+    <div className="container mx-auto px-4 py-8 mt-16 space-y-8">
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold cinema-text">Admin Dashboard</h1>
+        <p className="text-gray-300 text-lg">Manage your platform</p>
+      </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-black/20 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Total Users</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{stats.totalUsers}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-black/20 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Total Logs</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{stats.totalLogs}</p>
-              <div className="text-sm text-muted-foreground">
-                Movies: {stats.movieLogs} | Anime: {stats.animeLogs}
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="glass-card hover-glow">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-blue-500/20 rounded-full">
+                <Users className="w-6 h-6 text-blue-400" />
               </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-black/20 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Diary Entries</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{stats.totalDiaryEntries}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-black/20 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Collections</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{stats.totalCollections}</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Users Table */}
-        <Card className="bg-black/20 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle>User Management</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Username</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Created At</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map((user: any) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.username}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.role}</TableCell>
-                      <TableCell>
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        {user.role !== 'admin' && (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => setUserToDelete(user)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div>
+                <p className="text-sm text-gray-400">Total Users</p>
+                <p className="text-2xl font-bold text-white">{stats?.stats.totalUsers}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the user
-                and all their associated data.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => userToDelete && handleDeleteUser(userToDelete.id)}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <Card className="glass-card hover-glow">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-purple-500/20 rounded-full">
+                <Film className="w-6 h-6 text-purple-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Movie Logs</p>
+                <p className="text-2xl font-bold text-white">{stats?.stats.movieLogs}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card hover-glow">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-green-500/20 rounded-full">
+                <Tv className="w-6 h-6 text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">TV Logs</p>
+                <p className="text-2xl font-bold text-white">{stats?.stats.tvLogs}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card hover-glow">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-pink-500/20 rounded-full">
+                <BookOpen className="w-6 h-6 text-pink-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Anime Logs</p>
+                <p className="text-2xl font-bold text-white">{stats?.stats.animeLogs}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </ScrollArea>
+
+      {/* Tabs */}
+      <Tabs defaultValue="users" className="space-y-6">
+        <TabsList className="bg-white/10 border border-white/20">
+          <TabsTrigger value="users" className="flex items-center space-x-2">
+            <Users className="w-4 h-4" />
+            <span>Users</span>
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex items-center space-x-2">
+            <Activity className="w-4 h-4" />
+            <span>Recent Activity</span>
+          </TabsTrigger>
+          <TabsTrigger value="stats" className="flex items-center space-x-2">
+            <Database className="w-4 h-4" />
+            <span>Detailed Stats</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="users">
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle>Manage Users</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {users.map((user) => (
+                  <div key={user._id} className="flex items-center justify-between p-4 rounded-lg bg-white/5">
+                    <div>
+                      <p className="font-medium text-white">{user.username}</p>
+                      <p className="text-sm text-gray-400">{user.email}</p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                          {user.role}
+                        </Badge>
+                        <p className="text-xs text-gray-500">
+                          Joined {format(new Date(user.createdAt), 'MMM d, yyyy')}
+                        </p>
+                      </div>
+                    </div>
+                    {user.role !== 'admin' && (
+                      <Button
+                        onClick={() => deleteUser(user._id)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center space-x-2 mt-6">
+                  <Button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    variant="outline"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    variant="outline"
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="activity">
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {stats?.recentActivity.map((activity: any) => (
+                  <div key={activity._id} className="flex items-start space-x-4 p-4 rounded-lg bg-white/5">
+                    <div className="w-2 h-2 bg-neon-blue rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p className="text-white">
+                        <span className="font-medium text-neon-blue">
+                          {activity.userId.username}
+                        </span>{' '}
+                        {activity.description}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        {format(new Date(activity.createdAt), 'MMM d, yyyy h:mm a')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="stats">
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle>Detailed Statistics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="p-4 rounded-lg bg-white/5">
+                  <p className="text-gray-400 mb-1">Total Diary Entries</p>
+                  <p className="text-2xl font-bold text-white">{stats?.stats.totalDiaryEntries}</p>
+                </div>
+                <div className="p-4 rounded-lg bg-white/5">
+                  <p className="text-gray-400 mb-1">Total Collections</p>
+                  <p className="text-2xl font-bold text-white">{stats?.stats.totalCollections}</p>
+                </div>
+                <div className="p-4 rounded-lg bg-white/5">
+                  <p className="text-gray-400 mb-1">Total Activities</p>
+                  <p className="text-2xl font-bold text-white">{stats?.stats.totalActivities}</p>
+                </div>
+                <div className="p-4 rounded-lg bg-white/5">
+                  <p className="text-gray-400 mb-1">Admin Users</p>
+                  <p className="text-2xl font-bold text-white">{stats?.stats.totalAdmins}</p>
+                </div>
+                <div className="p-4 rounded-lg bg-white/5">
+                  <p className="text-gray-400 mb-1">Total Logs</p>
+                  <p className="text-2xl font-bold text-white">{stats?.stats.totalLogs}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

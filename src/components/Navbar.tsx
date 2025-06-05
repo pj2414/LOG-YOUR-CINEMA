@@ -55,7 +55,7 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             <NavLink
-              to="/"
+              to="/dashboard"
               className={({ isActive }) =>
                 isActive
                   ? "text-neon-blue border-b-2 border-neon-blue pb-1"
@@ -73,6 +73,16 @@ const Navbar = () => {
               }
             >
               Movies
+            </NavLink>
+            <NavLink
+              to="/tv"
+              className={({ isActive }) =>
+                isActive
+                  ? "text-neon-blue border-b-2 border-neon-blue pb-1"
+                  : "text-white hover:text-neon-blue transition duration-300"
+              }
+            >
+              TV Shows
             </NavLink>
             <NavLink
               to="/anime"
@@ -124,6 +134,8 @@ const Navbar = () => {
             >
               Search
             </NavLink>
+
+            {/* Admin Link - Desktop */}
             {user?.role === "admin" && (
               <NavLink
                 to="/admin"
@@ -133,7 +145,7 @@ const Navbar = () => {
                     : "text-white hover:text-neon-blue transition duration-300"
                 }
               >
-                Admin Panel
+                Admin
               </NavLink>
             )}
           </div>
@@ -208,11 +220,14 @@ const Navbar = () => {
       {mobileMenuOpen && (
         <div className="md:hidden bg-gray-900/95 backdrop-blur-md border-t border-gray-800">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <MobileNavLink to="/" onClick={closeMobileMenu}>
-              Home
+            <MobileNavLink to="/dashboard" onClick={closeMobileMenu}>
+              Dashboard
             </MobileNavLink>
             <MobileNavLink to="/movies" onClick={closeMobileMenu}>
               Movies
+            </MobileNavLink>
+            <MobileNavLink to="/tv" onClick={closeMobileMenu}>
+              TV Shows
             </MobileNavLink>
             <MobileNavLink to="/anime" onClick={closeMobileMenu}>
               Anime
@@ -229,9 +244,11 @@ const Navbar = () => {
             <MobileNavLink to="/profile" onClick={closeMobileMenu}>
               Profile
             </MobileNavLink>
+
+            {/* Admin Link - Mobile */}
             {user?.role === "admin" && (
               <MobileNavLink to="/admin" onClick={closeMobileMenu}>
-                Admin Panel
+                Admin
               </MobileNavLink>
             )}
           </div>
