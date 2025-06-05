@@ -6,7 +6,6 @@ const BACKGROUND_IMAGES = [
   'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=1920&h=1080&fit=crop&crop=center',
   'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=1920&h=1080&fit=crop&crop=center',
   'https://images.unsplash.com/photo-1560932678-4f37c5c9c7d5?w=1920&h=1080&fit=crop&crop=center',
-  'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1920&h=1080&fit=crop&crop=center',
   'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1920&h=1080&fit=crop&crop=center',
 ];
 
