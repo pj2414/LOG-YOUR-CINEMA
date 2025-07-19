@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://anime-backend.up.railway.app/api';
+const API_BASE_URL = 'https://logyourcinemaback.onrender.com//api';
 
 class ApiClient {
   private baseURL: string;
