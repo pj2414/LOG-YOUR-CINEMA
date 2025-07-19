@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://logyourcinemaback.onrender.com//api';
+const API_BASE_URL = 'https://logyourcinemaback.onrender.com/api';
 
 class ApiClient {
   private baseURL: string;
